@@ -25,6 +25,30 @@ public class QueryTests
     }
 
     [Fact]
+    public void Query_is_in_an_idle_state_before_query_function_is_executed()
+    {
+        // Arrange
+        var queryFactory = _serviceCollection
+            .AddRazorQuery()
+            .BuildServiceProvider()
+            .GetRequiredService<QueryFactory>();
+
+        var query = queryFactory.Create<TestData, string>(
+            async (filter, context) =>
+            {
+                await Task.CompletedTask; // Simulate some processing
+                throw new InvalidOperationException("This query function should not have been executed!");
+            });
+
+        // Act - do not execute the query!
+
+        // Assert
+        Assert.True(query.IsIdle);
+        Assert.Equal(QueryStatus.Idle, query.Status);
+        Assert.Null(query.Error);
+    }
+
+    [Fact]
     public async Task QueryFunction_can_make_http_requests()
     {
         // Arrange
