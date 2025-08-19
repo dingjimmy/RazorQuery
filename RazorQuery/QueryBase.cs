@@ -31,6 +31,11 @@ public abstract class QueryBase
 /// </summary>
 public class QueryFunctionContext
 {
+    public QueryFunctionContext(HttpClient httpClient)
+    {
+        HttpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient), "HttpClient cannot be null.");
+    }
+
     public string ErrorMessage { get; set; } = string.Empty;
 
     public HttpClient HttpClient { get; set; }

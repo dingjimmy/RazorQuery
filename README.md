@@ -33,11 +33,23 @@ To quickly set up and use in your local development environment, follow these st
 
 ## Usage
 
-Example of using RazorQuery in a Rlazor Component
+To use Razor Query in your Blazor application, you need to add the 
+necessary services in your `Program.cs` file:
+
+``` csharp
+
+builder.Services.AddRazorQuery();
+
+```
+
+Then you can use RazorQuery in a Rlazor Component, for example, to fetch 
+a list of todo items:
+
 
 ``` razor
 
 @page "/todo"
+@inject QueryFactory queryFactory;
 
 <h1>Todo List...</h1>
 
@@ -64,18 +76,18 @@ else if (searchQuery.Status == QueryStatus.Success)
 @code 
 {
     public string SearchText { get; set; } = string.Empty;
+    
+    private readonly Query<ToDoListContent, string> searchQuery = 
+        queryFactory.Create<ToDoListContent, string>(async (searchText, ctx) =>
+        {
+            var httpClient = ctx.HttpClient;
 
+            var response = await httpClient.GetAsync($"https://jsonplaceholder.typicode.com/todos");
 
-    private Query<ToDoListContent, string> searchQuery = new (async (searchText, ctx) =>
-    {
-        var httpClient = ctx.HttpClient;
+            var item = await response.Content.ReadFromJsonAsync<ToDoListContent>();
 
-        var response = await httpClient.GetAsync($"https://jsonplaceholder.typicode.com/todos");
-
-        var item = await response.Content.ReadFromJsonAsync<ToDoListContent>();
-
-        return item ?? new ToDoListContent();
-    });
+            return item ?? new ToDoListContent();
+        });
 
 
     protected override async Task OnInitializedAsync()

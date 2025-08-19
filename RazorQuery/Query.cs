@@ -12,15 +12,16 @@ public class Query<T, TFilter> : QueryBase
     where T : new()
 {
     private readonly Func<TFilter, QueryFunctionContext, Task<T>> _queryFunc;
-
+    private readonly QueryFunctionContext _queryFuncContext;
 
     public T Data { get; protected set; }
 
 
-    public Query(Func<TFilter, QueryFunctionContext, Task<T>> queryFunction)
+    public Query(Func<TFilter, QueryFunctionContext, Task<T>> queryFunction, QueryFunctionContext queryFunctionContext)
     {
         Data = new T();
         _queryFunc = queryFunction ?? throw new ArgumentNullException(nameof(queryFunction));
+        _queryFuncContext = queryFunctionContext ?? throw new ArgumentNullException(nameof(queryFunctionContext));
     }
 
     public async Task<T> Execute(TFilter filter)
@@ -28,24 +29,16 @@ public class Query<T, TFilter> : QueryBase
         Error = null;
         Status = QueryStatus.Pending;
 
-
-        // TODO: Link this up to DI container or HttpClient factory
-        var funcContext = new QueryFunctionContext
-        {
-            ErrorMessage = string.Empty,
-            HttpClient = new HttpClient() // this is v bad, should be injected instead. just using for prototype.
-        };
-
         try
         {
-            Data = await _queryFunc(filter, funcContext);
+            Data = await _queryFunc(filter, _queryFuncContext);
 
             // check for errors raised by the function itself.
             // TODO: currently using exceptions for flow logic, but should be 
             //       replaced with a more structured error handling approach
-            if (funcContext.ErrorMessage.Length > 0)
+            if (_queryFuncContext.ErrorMessage.Length > 0)
             {
-                throw new Exception(funcContext.ErrorMessage);
+                throw new Exception(_queryFuncContext.ErrorMessage);
             }
 
             Status = QueryStatus.Success;
