@@ -125,6 +125,60 @@ public class QueryTests
     }
 
     [Fact]
+    public async Task Query_is_in_pending_state_while_the_query_function_is_executing()
+    {
+        // PLEASE READ ME:
+        // This test is verifying the state of the query while the query
+        // function is being executed, which isn't easy to do. Currently using
+        // ManualResetEvents to synchronize the test execution, but there may
+        // be other more succinct approaches to achieve this. Open to suggestions.
+
+
+        // Arrange
+        var queryFactory = _serviceCollection
+            .AddRazorQuery()
+            .BuildServiceProvider()
+            .GetRequiredService<QueryFactory>();
+
+        var pauseAct = new ManualResetEvent(false);
+        var pauseAssert = new ManualResetEvent(false);
+
+        var query = queryFactory.Create<TestData, string>(
+            async (filter, context) =>
+            {
+                await Task.CompletedTask; // Simulate some processing
+                pauseAssert.Set();        // Allow the assert to proceed
+                pauseAct.WaitOne();       // Wait until the assert completes
+                return new TestData();
+            });
+
+        // Act
+        var actTask = Task.Run(async () =>
+        {
+            await query.Execute("test filter");
+        });
+
+        // Assert
+        var assertTask = Task.Run(() =>
+        {
+            pauseAssert.WaitOne(); // Wait until the query function is executing
+
+            try
+            {
+                Assert.True(query.IsPending);
+                Assert.Equal(QueryStatus.Pending, query.Status);
+                Assert.Null(query.Error);
+            }
+            finally
+            {
+                pauseAct.Set(); // Allow the query function to complete
+            }
+        });
+
+        await Task.WhenAll(actTask, assertTask);
+    }
+
+    [Fact]
     public async Task QueryFunction_can_make_http_requests()
     {
         // Arrange
