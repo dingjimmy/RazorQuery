@@ -49,6 +49,31 @@ public class QueryTests
     }
 
     [Fact]
+    public async Task Query_goes_into_success_state_if_query_function_completes_with_no_errors()
+    {
+        // Arrange
+        var queryFactory = _serviceCollection
+            .AddRazorQuery()
+            .BuildServiceProvider()
+            .GetRequiredService<QueryFactory>();
+
+        var query = queryFactory.Create<TestData, string>(
+            async (filter, context) =>
+            {
+                await Task.CompletedTask; // Simulate some processing
+                return new TestData();
+            });
+
+        // Act
+        await query.Execute("test filter");
+
+        // Assert
+        Assert.True(query.IsSuccess);
+        Assert.Equal(QueryStatus.Success, query.Status);
+        Assert.Null(query.Error);
+    }
+
+    [Fact]
     public async Task QueryFunction_can_make_http_requests()
     {
         // Arrange
