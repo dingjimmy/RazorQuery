@@ -74,6 +74,57 @@ public class QueryTests
     }
 
     [Fact]
+    public async Task Query_goes_into_error_state_if_ErrorMessage_is_set_by_query_function()
+    {
+        // Arrange
+        var queryFactory = _serviceCollection
+            .AddRazorQuery()
+            .BuildServiceProvider()
+            .GetRequiredService<QueryFactory>();
+
+        var query = queryFactory.Create<TestData, string>(
+            async (filter, context) =>
+            {
+                await Task.CompletedTask; // Simulate some processing
+                context.ErrorMessage = "An error occurred during execution.";
+                return new TestData();
+            });
+
+        // Act
+        await query.Execute("test filter");
+
+        // Assert
+        Assert.True(query.IsError);
+        Assert.Equal(QueryStatus.Error, query.Status);
+        Assert.Equal("An error occurred during execution.", query.Error!.Message);
+    }
+
+    [Fact]
+    public async Task Query_goes_into_error_state_if_Exception_is_thrown_by_query_function()
+    {
+        // Arrange
+        var queryFactory = _serviceCollection
+            .AddRazorQuery()
+            .BuildServiceProvider()
+            .GetRequiredService<QueryFactory>();
+
+        var query = queryFactory.Create<TestData, string>(
+            async (filter, context) =>
+            {
+                await Task.CompletedTask; // Simulate some processing
+                throw new Exception("An error occurred during execution.");
+            });
+
+        // Act
+        await query.Execute("test filter");
+
+        // Assert
+        Assert.True(query.IsError);
+        Assert.Equal(QueryStatus.Error, query.Status);
+        Assert.Equal("An error occurred during execution.", query.Error!.Message);
+    }
+
+    [Fact]
     public async Task QueryFunction_can_make_http_requests()
     {
         // Arrange
