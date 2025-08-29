@@ -26,7 +26,7 @@ public class QueryTests
         var serviceProvider = _serviceCollection
             .AddRazorQuery()
             .BuildServiceProvider();
-        QueryFactory.
+
         QueryFactory.SetServiceProvider(serviceProvider);
     }
 
