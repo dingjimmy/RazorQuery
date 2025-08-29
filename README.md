@@ -33,23 +33,27 @@ To quickly set up and use in your local development environment, follow these st
 
 ## Usage
 
-To use Razor Query in your Blazor application, you need to add the 
-necessary services in your `Program.cs` file:
+To use Razor Query in your Blazor application, first update your `Program.cs` file...
+
+1. Add Razor Query services:
 
 ``` csharp
-
 builder.Services.AddRazorQuery();
+```
+2. Configure Razor Query services to work with the application's host object:
 
+```csharp
+await builder
+    .Build()
+    .UseRazorQuery()
+    .RunAsync();
 ```
 
-Then you can use RazorQuery in a Rlazor Component, for example, to fetch 
+Once the `Program.cs` file is updated, you can use RazorQuery in a Razor Component, for example, to fetch 
 a list of todo items:
 
-
 ``` razor
-
 @page "/todo"
-@inject QueryFactory queryFactory;
 
 <h1>Todo List...</h1>
 
@@ -78,7 +82,7 @@ else if (searchQuery.Status == QueryStatus.Success)
     public string SearchText { get; set; } = string.Empty;
     
     private readonly Query<ToDoListContent, string> searchQuery = 
-        queryFactory.Create<ToDoListContent, string>(async (searchText, ctx) =>
+        QueryFactory.Create<ToDoListContent, string>(async (searchText, ctx) =>
         {
             var httpClient = ctx.HttpClient;
 
