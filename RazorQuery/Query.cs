@@ -9,17 +9,15 @@
 /// <typeparam name="T">The type of data to be retrieved.</typeparam>
 /// <typeparam name="TFilter">The type representing the criteria used to filter the data being retrieved.</typeparam>
 public class Query<T, TFilter> : QueryBase
-    where T : new()
 {
     private readonly Func<TFilter, QueryFunctionContext, Task<T>> _queryFunc;
     private readonly QueryFunctionContext _queryFuncContext;
 
-    public T Data { get; protected set; }
+    public T? Data { get; protected set; }
 
 
     public Query(Func<TFilter, QueryFunctionContext, Task<T>> queryFunction, QueryFunctionContext queryFunctionContext)
     {
-        Data = new T();
         _queryFunc = queryFunction ?? throw new ArgumentNullException(nameof(queryFunction));
         _queryFuncContext = queryFunctionContext ?? throw new ArgumentNullException(nameof(queryFunctionContext));
     }
