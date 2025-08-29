@@ -22,18 +22,19 @@ public class QueryTests
 
         _serviceCollection = new ServiceCollection()
            .AddSingleton(_httpClientFactory);
+        
+        var serviceProvider = _serviceCollection
+            .AddRazorQuery()
+            .BuildServiceProvider();
+        QueryFactory.
+        QueryFactory.SetServiceProvider(serviceProvider);
     }
 
     [Fact]
     public void Query_is_in_an_idle_state_before_query_function_is_executed()
     {
         // Arrange
-        var queryFactory = _serviceCollection
-            .AddRazorQuery()
-            .BuildServiceProvider()
-            .GetRequiredService<QueryFactory>();
-
-        var query = queryFactory.Create<TestData, string>(
+        var query = QueryFactory.Create<TestData, string>(
             async (filter, context) =>
             {
                 await Task.CompletedTask; // Simulate some processing
@@ -52,12 +53,7 @@ public class QueryTests
     public async Task Query_goes_into_success_state_if_query_function_completes_with_no_errors()
     {
         // Arrange
-        var queryFactory = _serviceCollection
-            .AddRazorQuery()
-            .BuildServiceProvider()
-            .GetRequiredService<QueryFactory>();
-
-        var query = queryFactory.Create<TestData, string>(
+        var query = QueryFactory.Create<TestData, string>(
             async (filter, context) =>
             {
                 await Task.CompletedTask; // Simulate some processing
@@ -77,12 +73,7 @@ public class QueryTests
     public async Task Query_goes_into_error_state_if_ErrorMessage_is_set_by_query_function()
     {
         // Arrange
-        var queryFactory = _serviceCollection
-            .AddRazorQuery()
-            .BuildServiceProvider()
-            .GetRequiredService<QueryFactory>();
-
-        var query = queryFactory.Create<TestData, string>(
+        var query = QueryFactory.Create<TestData, string>(
             async (filter, context) =>
             {
                 await Task.CompletedTask; // Simulate some processing
@@ -103,12 +94,7 @@ public class QueryTests
     public async Task Query_goes_into_error_state_if_Exception_is_thrown_by_query_function()
     {
         // Arrange
-        var queryFactory = _serviceCollection
-            .AddRazorQuery()
-            .BuildServiceProvider()
-            .GetRequiredService<QueryFactory>();
-
-        var query = queryFactory.Create<TestData, string>(
+        var query = QueryFactory.Create<TestData, string>(
             async (filter, context) =>
             {
                 await Task.CompletedTask; // Simulate some processing
@@ -130,20 +116,15 @@ public class QueryTests
         // PLEASE READ ME:
         // This test is verifying the state of the query while the query
         // function is being executed, which isn't easy to do. Currently using
-        // ManualResetEvents to synchronize the test execution, but there may
+        // ManualResetEvents to synchronise the test execution, but there may
         // be other more succinct approaches to achieve this. Open to suggestions.
 
 
         // Arrange
-        var queryFactory = _serviceCollection
-            .AddRazorQuery()
-            .BuildServiceProvider()
-            .GetRequiredService<QueryFactory>();
-
         var pauseAct = new ManualResetEvent(false);
         var pauseAssert = new ManualResetEvent(false);
 
-        var query = queryFactory.Create<TestData, string>(
+        var query = QueryFactory.Create<TestData, string>(
             async (filter, context) =>
             {
                 await Task.CompletedTask; // Simulate some processing
@@ -182,12 +163,7 @@ public class QueryTests
     public async Task QueryFunction_can_make_http_requests()
     {
         // Arrange
-        var queryFactory = _serviceCollection
-            .AddRazorQuery()
-            .BuildServiceProvider()
-            .GetRequiredService<QueryFactory>();
-
-        var query = queryFactory.Create<TestData, string>(
+        var query = QueryFactory.Create<TestData, string>(
             async (filter, context) =>
             {
                 var response = await context.HttpClient.GetStringAsync("http://razor-query-tests.com");
@@ -202,7 +178,7 @@ public class QueryTests
         await query.Execute("test filter");
 
         // Assert
-        Assert.Equal("Testing is cool!", query.Data.Result);
+        Assert.Equal("Testing is cool!", query.Data?.Result);
 
     }
 }
