@@ -17,7 +17,7 @@ public static class RazorQueryServiceCollectionExtensions
         services.AddHttpClient();
 
         // Register RazorQuery services
-        services.AddTransient<QueryFunctionContext>();
+        services.AddTransient<DefaultQueryFunctionContext>();
 
         return services;
     }

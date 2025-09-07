@@ -1,4 +1,6 @@
-﻿namespace RazorQuery;
+﻿using Microsoft.Extensions.DependencyInjection;
+
+namespace RazorQuery;
 
 /// <summary>
 /// Represents the base class for query operations, providing common properties and 
@@ -29,17 +31,34 @@ public abstract class QueryBase
 /// Represents the context for executing a query function. Intended to be used by query 
 /// functions to access necessary resources and for reporting errors.
 /// </summary>
-public class QueryFunctionContext
+public class DefaultQueryFunctionContext : IQueryFunctionContext
 {
-    public QueryFunctionContext(HttpClient httpClient)
-    {
-        HttpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient), "HttpClient cannot be null.");
-    }
+    private readonly IServiceProvider _ServiceProvider;
 
     public string ErrorMessage { get; set; } = string.Empty;
 
-    public HttpClient HttpClient { get; set; }
+    public HttpClient HttpClient { get; }
 
+    public DefaultQueryFunctionContext(IServiceProvider serviceProvider)
+    {
+        _ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        HttpClient = serviceProvider.GetRequiredService<HttpClient>();
+    }
+
+    public T? GetService<T>()
+    {
+        return _ServiceProvider.GetService<T>();
+    }
+
+    public T GetRequiredService<T>() where T : notnull
+    {
+        return _ServiceProvider.GetRequiredService<T>();
+    }
+}
+
+public interface IQueryFunctionContext
+{
+    string ErrorMessage { get; set; }
 }
 
 /// <summary>
