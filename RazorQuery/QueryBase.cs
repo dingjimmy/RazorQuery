@@ -27,10 +27,12 @@ public abstract class QueryBase
     public bool IsError => Status == QueryStatus.Error;
 }
 
-/// <summary>
-/// Represents the context for executing a query function. Intended to be used by query 
-/// functions to access necessary resources and for reporting errors.
-/// </summary>
+
+/// <inheritdoc cref="IQueryFunctionContext"/>
+/// <remarks>
+/// This is the default implementation used in most common cases. Custom implementations 
+/// of <see cref="IQueryFunctionContext"/> can be created and used when needed.
+/// </remarks>
 public class DefaultQueryFunctionContext : IQueryFunctionContext
 {
     private readonly IServiceProvider _ServiceProvider;
@@ -56,6 +58,10 @@ public class DefaultQueryFunctionContext : IQueryFunctionContext
     }
 }
 
+/// <summary>
+/// Represents the context for executing a query function. Used by query functions to 
+/// view contextual state, access resources, and report errors.
+/// </summary>
 public interface IQueryFunctionContext
 {
     string ErrorMessage { get; set; }

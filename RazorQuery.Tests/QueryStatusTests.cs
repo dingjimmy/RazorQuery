@@ -6,26 +6,23 @@ using Xunit.Sdk;
 
 namespace RazorQuery.Tests;
 
-public class QueryTests
+public class QueryStatusTests
 {
     private readonly MockHttpMessageHandler _httpMessageHandler = new();
     private readonly IHttpClientFactory _httpClientFactory = Mock.Of<IHttpClientFactory>();
-    private readonly IServiceCollection _serviceCollection;
 
-    public QueryTests()
+    public QueryStatusTests()
     {
         _httpMessageHandler.When("http://razor-query-tests.com")
             .Respond(HttpStatusCode.OK, "application/text", "Testing is cool!");
 
         Mock.Get(_httpClientFactory).Setup(x => x.CreateClient(string.Empty))
             .Returns(_httpMessageHandler.ToHttpClient());
-
-        _serviceCollection = new ServiceCollection()
-           .AddSingleton(_httpClientFactory);
         
-        var serviceProvider = _serviceCollection
-            .AddRazorQuery()
-            .BuildServiceProvider();
+        var serviceProvider = new ServiceCollection()
+           .AddSingleton(_httpClientFactory)
+           .AddRazorQuery()
+           .BuildServiceProvider();
 
         QueryFactory.SetServiceProvider(serviceProvider);
     }

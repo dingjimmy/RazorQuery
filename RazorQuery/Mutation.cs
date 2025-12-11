@@ -9,9 +9,9 @@
 /// <typeparam name="TInput">The type of input data to be processed by the mutation.</typeparam>
 public class Mutation<TInput> : MutationBase
 {
-    private readonly Func<TInput, QueryFunctionContext, Task> _mutationFunc;
+    private readonly Func<TInput, DefaultQueryFunctionContext, Task> _mutationFunc;
 
-    public Mutation(Func<TInput, QueryFunctionContext, Task> mutateFunction)
+    public Mutation(Func<TInput, DefaultQueryFunctionContext, Task> mutateFunction)
     {
         _mutationFunc = mutateFunction ?? throw new ArgumentNullException(nameof(mutateFunction));
     }
@@ -22,10 +22,10 @@ public class Mutation<TInput> : MutationBase
         Status = MutationStatus.Pending;
 
         // TODO: Link this up to DI container or HttpClient factory
-        var funcContext = new QueryFunctionContext
+        var funcContext = new DefaultQueryFunctionContext(null)
         {
             ErrorMessage = string.Empty,
-            HttpClient = new HttpClient() // this is v bad, should be injected instead. just using for prototype.
+            //HttpClient = new HttpClient() // this is v bad, should be injected instead. just using for prototype.
         };
 
         try
